@@ -223,7 +223,6 @@ MonoBehaviour:
   _size: {x: 100, y: 100}
   _width: 10
   _height: 10
-  _view: {fileID: 0}
   _entitiesCountText: {fileID: 574717936}
   _entitiesCountPerBatch: 10000
   _startEntitiesCount: 100000

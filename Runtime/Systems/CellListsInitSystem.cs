@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Text;
 using CellListsECS.Runtime.Components;
 using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
@@ -14,7 +15,7 @@ namespace CellListsECS.Runtime.Systems
         private readonly EcsPoolInject<Cell> _cells = default;
         private readonly EcsPoolInject<CellNeighbours> _neighbours = default;
         private readonly EcsPoolInject<TransformContainer> _entitiesLists = default;
-        
+
         public void Run(IEcsSystems systems)
         {
             foreach (var entity in _filter.Value)
@@ -64,16 +65,25 @@ namespace CellListsECS.Runtime.Systems
                     }
                 }
 
+                // pure madness
                 int[] GetClosestIndexesFor(int i)
                 {
                     var leftIndex = i - 1;
                     var rightIndex = i + 1;
                     var upIndex = i - width;
                     var downIndex = i + width;
+                    var leftUpIndex = i - width - 1;
+                    var rightUpIndex = i - (width - 1);
+                    var rightDownIndex = i + width + 1;
+                    var leftDownIndex = i + (width - 1);
                     var leftExist = i % width != 0 && leftIndex >= 0;
                     var rightExist = rightIndex % width != 0 && rightIndex < length;
                     var upExist = upIndex >= 0;
                     var downExist = downIndex < length;
+                    var leftUpExist = leftUpIndex >= 0 && i % width != 0;
+                    var rightUpExist = rightUpIndex % width != 0 && rightUpIndex >= 0;
+                    var rightDownExist = rightDownIndex < length && rightDownIndex % width != 0;
+                    var leftDownExist = leftDownIndex < length && i % width != 0;
                     var list = new List<int>();
 
                     if (rightExist)
@@ -84,6 +94,14 @@ namespace CellListsECS.Runtime.Systems
                         list.Add(upIndex);
                     if (downExist)
                         list.Add(downIndex);
+                    if (leftUpExist)
+                        list.Add(leftUpIndex);
+                    if (rightUpExist)
+                        list.Add(rightUpIndex);
+                    if (rightDownExist)
+                        list.Add(rightDownIndex);
+                    if (leftDownExist)
+                        list.Add(leftDownIndex);
 
                     return list.ToArray();
                 }

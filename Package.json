@@ -1,6 +1,6 @@
 {
   "name": "com.kotlk.celllistsecs",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "displayName": "Cell Lists",
   "description": "Simple cell lists implementation for dividing game world into pieces",
   "unity": "2021.3",
