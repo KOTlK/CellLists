@@ -1,0 +1,20 @@
+{
+  "name": "com.kotlk.celllistsecs",
+  "version": "0.1.0",
+  "displayName": "Cell Lists",
+  "description": "Simple cell lists implementation for dividing game world into pieces",
+  "unity": "2021.3",
+  "dependencies": {
+    "com.unity.collections": "1.4.0",
+    "com.leopotam.ecslite": "2023.5.22",
+    "com.leopotam.ecslite.di": "2023.4.22"
+ },
+  "author": {
+    "name": "Kotlk",
+    "email": "rojuty@gmail.com"
+  },
+  "repository" : {
+    "type": "git",
+    "url": "https://github.com/KOTlK/CellLists.git"
+  }
+}
