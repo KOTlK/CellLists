@@ -1,9 +1,7 @@
 ﻿using System.Collections.Generic;
-using System.Text;
 using CellListsECS.Runtime.Components;
 using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
-using Unity.Collections;
 using UnityEngine;
 
 namespace CellListsECS.Runtime.Systems
@@ -109,7 +107,7 @@ namespace CellListsECS.Runtime.Systems
                 for (var i = 0; i < length; i++)
                 {
                     var neighbours = GetClosestIndexesFor(i);
-                    var list = new NativeArray<int>(neighbours.Length, Allocator.Persistent);
+                    var list = new int[neighbours.Length];
                     for (var j = 0; j < neighbours.Length; j++)
                     {
                         var (_, neighbourEntity) = cells[neighbours[j]];

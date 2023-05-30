@@ -1,9 +1,7 @@
-﻿using Unity.Collections;
-
-namespace CellListsECS.Runtime.Components
+﻿namespace CellListsECS.Runtime.Components
 {
     public struct CellNeighbours
     {
-        public NativeArray<int> All;
+        public int[] All;
     }
 }
