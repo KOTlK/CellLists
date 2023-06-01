@@ -8,11 +8,10 @@ namespace CellListsECS.Samples
 {
     public class CellDrawSystem : IEcsRunSystem
     {
-        private readonly EcsFilterInject<Inc<Cell, CellNeighbours, TransformContainer>> _filter = default;
+        private readonly EcsFilterInject<Inc<Cell, CellNeighbours>> _filter = default;
         private readonly EcsPoolInject<Cell> _cells = default;
         private readonly EcsPoolInject<Transform> _transforms = default;
         private readonly EcsPoolInject<CellNeighbours> _neighbours = default;
-        private readonly EcsPoolInject<TransformContainer> _containers = default;
         
         public void Run(IEcsSystems systems)
         {
@@ -20,16 +19,15 @@ namespace CellListsECS.Samples
             {
                 ref var cell = ref _cells.Value.Get(entity);
                 ref var neighbours = ref _neighbours.Value.Get(entity);
-                ref var container = ref _containers.Value.Get(entity);
 
 
-                foreach (var cellNeighbour in neighbours.All)
+                foreach (var cellNeighbour in neighbours.NeighboursEntities)
                 {
                     ref var neighbour = ref _cells.Value.Get(cellNeighbour);
                     Debug.DrawLine(cell.Position, neighbour.Position, Color.red);
                 }
 
-                foreach (var containingEntity in container.All)
+                foreach (var containingEntity in neighbours.ContainingTransforms)
                 {
                     ref var transform = ref _transforms.Value.Get(containingEntity);
                     Debug.DrawLine(cell.Position, transform.Position, Color.blue);

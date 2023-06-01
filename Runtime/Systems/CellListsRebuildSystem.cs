@@ -2,114 +2,61 @@
 using CellListsECS.Runtime.Utils;
 using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
-using Unity.Burst;
-using Unity.Collections;
-using Unity.Jobs;
+using Unity.Profiling;
+using Transform = CellListsECS.Runtime.Components.Transform;
 
 namespace CellListsECS.Runtime.Systems
 {
+    //No Jobs 100000: 2.55ms overall build
+    //No Jobs 300000: 24ms overall build
+    //Jobs 100000: 5ms overall build
+    //Jobs 300000: 30ms overall build
+    //Creating arrays for jobs takes 10x more time than an actual job
     public class CellListsRebuildSystem : IEcsRunSystem
     {
-        private readonly EcsFilterInject<Inc<Cell, CellNeighbours, TransformContainer>> _cellsFilter = default;
+        private readonly EcsFilterInject<Inc<Cell, CellNeighbours>> _cellsFilter = default;
         private readonly EcsPoolInject<Cell> _cells = default;
         private readonly EcsPoolInject<Transform> _transforms = default;
         private readonly EcsPoolInject<CellNeighbours> _neighbours = default;
-        private readonly EcsPoolInject<TransformContainer> _containers = default;
-        
+
+        private static readonly ProfilerMarker Overall = new(nameof(Overall));
+        private static readonly ProfilerMarker Once = new(nameof(Once));
+
         public void Run(IEcsSystems systems)
         {
+            Overall.Begin();
             foreach (var entity in _cellsFilter.Value)
             {
+                Once.Begin();
                 ref var cell = ref _cells.Value.Get(entity);
-                ref var cellNeighbours = ref _neighbours.Value.Get(entity);
-                ref var transformContainer = ref _containers.Value.Get(entity);
-                var neighbours = new NativeArray<(Cell, int)>(cellNeighbours.All.Length, Allocator.TempJob);
-                var transforms = new NativeArray<(Transform, int)>(transformContainer.All.Count, Allocator.TempJob);
-                var removeCommands = new NativeQueue<int>(Allocator.TempJob);
-                var addCommands = new NativeQueue<(int, int)>(Allocator.TempJob);
+                ref var neighbours = ref _neighbours.Value.Get(entity);
 
-                for (var i = 0; i < cellNeighbours.All.Length; i++)
+                for(var i = 0; i < neighbours.ContainingTransforms.Count; i++)
                 {
-                    var neighbourEntity = cellNeighbours.All[i];
-                    ref var component = ref _cells.Value.Get(neighbourEntity);
-                    neighbours[i] = (component, neighbourEntity);
-                }
-
-                for (var i = 0; i < transformContainer.All.Count; i++)
-                {
-                    var transformEntity = transformContainer.All[i];
+                    var transformEntity = neighbours.ContainingTransforms[i];
                     ref var transform = ref _transforms.Value.Get(transformEntity);
-                    transforms[i] = (transform, transformEntity);
-                }
+                    if (CollisionDetection.AABBContainsPoint(cell.Position, cell.AABB, transform.Position))
+                        continue;
 
-                var job = new RebuildJob()
-                {
-                    Cell = cell,
-                    Neighbours = neighbours,
-                    Transforms = transforms,
-                    RemoveCommands = removeCommands.AsParallelWriter(),
-                    AddCommands = addCommands.AsParallelWriter()
-                }.Schedule(transforms.Length, 32);
-                
-                job.Complete();
+                    neighbours.ContainingTransforms.Remove(transformEntity);
 
-                while (removeCommands.Count > 0)
-                {
-                    var i = removeCommands.Dequeue();
-                    transformContainer.All.Remove(i);
-                }
-
-                while (addCommands.Count > 0)
-                {
-                    var (cellEntity, transformEntity) = addCommands.Dequeue();
-
-                    ref var targetContainer = ref _containers.Value.Get(cellEntity);
-                    targetContainer.All.Add(transformEntity);
-                }
-
-                neighbours.Dispose();
-                transforms.Dispose();
-                addCommands.Dispose();
-                removeCommands.Dispose();
-            }
-        }
-        
-        [BurstCompile]
-        public struct RebuildJob : IJobParallelFor
-        {
-            [ReadOnly] public Cell Cell;
-            [ReadOnly] public NativeArray<(Cell, int)> Neighbours;
-            [ReadOnly] public NativeArray<(Transform, int)> Transforms;
-
-            /// <summary>
-            /// transformEntity
-            /// </summary>
-            public NativeQueue<int>.ParallelWriter RemoveCommands;
-
-            /// <summary>
-            /// cellEntity, transformEntity;
-            /// </summary>
-            public NativeQueue<(int, int)>.ParallelWriter AddCommands;
-
-            [BurstCompile]
-            public void Execute(int index)
-            {
-                var (transform, transformEntity) = Transforms[index];
-
-                if (CollisionDetection.AABBContainsPoint(Cell.Position, Cell.AABB, transform.Position))
-                    return;
-                
-                RemoveCommands.Enqueue(transformEntity);
-
-                foreach (var (neighbourCell, neighbourEntity) in Neighbours)
-                {
-                    if (CollisionDetection.AABBContainsPoint(neighbourCell.Position, neighbourCell.AABB, transform.Position))
+                    foreach (var neighbourEntity in neighbours.NeighboursEntities)
                     {
-                        AddCommands.Enqueue((neighbourEntity, transformEntity));
-                        break;
+                        ref var neighbourCell = ref _cells.Value.Get(neighbourEntity);
+
+                        if (CollisionDetection.AABBContainsPoint(neighbourCell.Position, neighbourCell.AABB,
+                                transform.Position))
+                        {
+                            ref var neighbourContainer = ref _neighbours.Value.Get(neighbourEntity);
+                            neighbourContainer.ContainingTransforms.Add(transformEntity);
+                        }
                     }
                 }
+
+                Once.End();
             }
+            Overall.End();
+            
         }
     }
 }

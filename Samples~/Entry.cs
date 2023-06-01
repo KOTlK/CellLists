@@ -23,6 +23,7 @@ namespace CellListsECS.Samples
         
         private EcsSystems _systems;
         private int _entitiesCount = 0;
+        
         private void Start()
         {
             Application.targetFrameRate = 0;
@@ -37,9 +38,7 @@ namespace CellListsECS.Samples
             command.Size = _size;
             command.Width = _width;
             command.Height = _height;
-
-            SpawnPoints(_startEntitiesCount);
-
+            
             _systems
                 .Add(new CellListsInitSystem())
                 .Add(new InsertTransformSystem())
@@ -47,10 +46,12 @@ namespace CellListsECS.Samples
                 .Add(new CellListsRebuildSystem())
                 .DelHere<Collision>("Collisions")
                 .Add(new CollisionDetectionSystem())
-                //.Add(new DisplayCollisionsSystem()) // uncomment this if you need flickering numbers on screen
-                //.Add(new CellDrawSystem()) // uncomment this if you need debug in scene view
+                .Add(new DisplayCollisionsSystem()) // uncomment this if you need to display collisions
+                .Add(new CellDrawSystem()) // uncomment this if you need debug in scene view
                 .Inject(_collisions)
                 .Init();
+            
+            SpawnPoints(_startEntitiesCount);
         }
 
         private void Update()

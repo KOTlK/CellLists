@@ -1,7 +1,10 @@
-﻿namespace CellListsECS.Runtime.Components
+﻿using System.Collections.Generic;
+
+namespace CellListsECS.Runtime.Components
 {
     public struct CellNeighbours
     {
-        public int[] All;
+        public int[] NeighboursEntities;
+        public List<int> ContainingTransforms;
     }
 }

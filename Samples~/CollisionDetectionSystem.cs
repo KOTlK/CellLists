@@ -4,55 +4,47 @@ using Leopotam.EcsLite.Di;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
-using Unity.Profiling;
+using Transform = CellListsECS.Runtime.Components.Transform;
 
 namespace CellListsECS.Samples
 {
     public class CollisionDetectionSystem : IEcsRunSystem
     {
         private readonly EcsWorldInject _collisionsWorld = "Collisions";
-        private readonly EcsFilterInject<Inc<Cell>> _cellsFilter = default;
+        private readonly EcsFilterInject<Inc<Cell, CellNeighbours>> _cellsFilter = default;
         private readonly EcsPoolInject<Transform> _transforms = default;
         private readonly EcsPoolInject<AABB> _aabbs = default;
         private readonly EcsPoolInject<CellNeighbours> _neighbours = default;
-        private readonly EcsPoolInject<TransformContainer> _containers = default;
         private readonly EcsPoolInject<Collision> _collisions = "Collisions";
 
-        private static readonly ProfilerMarker ListBuild = new(nameof(ListBuild));
-        private static readonly ProfilerMarker Job = new(nameof(Job));
-        private static readonly ProfilerMarker CollisionsWriting = new(nameof(CollisionsWriting));
-        
         public void Run(IEcsSystems systems)
         {
             foreach (var entity in _cellsFilter.Value)
             {
-                ListBuild.Begin();
                 ref var neighbours = ref _neighbours.Value.Get(entity);
-                ref var cellContainer = ref _containers.Value.Get(entity);
                 var entities = new NativeList<(Transform, AABB, int)>(Allocator.TempJob);
                 var output = new NativeQueue<Collision>(Allocator.TempJob);
 
-                foreach (var transformEntity in cellContainer.All)
+                
+                foreach (var transformEntity in neighbours.ContainingTransforms)
                 {
                     ref var transform = ref _transforms.Value.Get(transformEntity);
                     ref var aabb = ref _aabbs.Value.Get(transformEntity);
                     entities.Add((transform, aabb, transformEntity));
                 }
 
-                foreach (var neighbour in neighbours.All)
+                foreach (var neighbourEntity in neighbours.NeighboursEntities)
                 {
-                    ref var neighbourContainer = ref _containers.Value.Get(neighbour);
+                    ref var neighbour = ref _neighbours.Value.Get(neighbourEntity);
 
-                    foreach (var transformEntity in neighbourContainer.All)
+                    foreach (var transformEntity in neighbour.ContainingTransforms)
                     {
                         ref var transform = ref _transforms.Value.Get(transformEntity);
                         ref var aabb = ref _aabbs.Value.Get(transformEntity);
                         entities.Add((transform, aabb, transformEntity));
                     }
                 }
-                ListBuild.End();
 
-                Job.Begin();
                 var job = new CollisionDetectionJob()
                 {
                     Entities = entities,
@@ -61,9 +53,7 @@ namespace CellListsECS.Samples
 
                 job.Schedule(entities.Length, 32).Complete();
                 
-                Job.End();
 
-                CollisionsWriting.Begin();
                 while (output.Count > 0)
                 {
                     var collision = output.Dequeue();
@@ -74,10 +64,9 @@ namespace CellListsECS.Samples
 
                 entities.Dispose();
                 output.Dispose();
-                CollisionsWriting.End();
             }
         }
-        
+
         [BurstCompile]
         public struct CollisionDetectionJob : IJobParallelFor
         {

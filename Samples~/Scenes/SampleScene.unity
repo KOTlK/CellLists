@@ -360,8 +360,8 @@ MonoBehaviour:
   _width: 10
   _height: 10
   _entitiesCountText: {fileID: 574717936}
-  _entitiesCountPerBatch: 1000
-  _startEntitiesCount: 1000
+  _entitiesCountPerBatch: 10000
+  _startEntitiesCount: 3000
   _spawnRadius: 50
 --- !u!1 &574717934
 GameObject:

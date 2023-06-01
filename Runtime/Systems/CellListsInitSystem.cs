@@ -12,7 +12,6 @@ namespace CellListsECS.Runtime.Systems
         private readonly EcsPoolInject<CreateCellLists> _commands = default;
         private readonly EcsPoolInject<Cell> _cells = default;
         private readonly EcsPoolInject<CellNeighbours> _neighbours = default;
-        private readonly EcsPoolInject<TransformContainer> _entitiesLists = default;
 
         public void Run(IEcsSystems systems)
         {
@@ -116,16 +115,15 @@ namespace CellListsECS.Runtime.Systems
 
                     ref var neighboursComponent = ref _neighbours.Value.Add(cells[i].Item2);
 
-                    neighboursComponent.All = list;
+                    neighboursComponent.NeighboursEntities = list;
                 }
 
                 foreach (var (cell, cellEntity) in cells)
                 {
                     ref var cellComponent = ref _cells.Value.Add(cellEntity);
                     cellComponent = cell;
-
-                    ref var container = ref _entitiesLists.Value.Add(cellEntity);
-                    container.All = new List<int>();
+                    ref var neighbours = ref _neighbours.Value.Get(cellEntity);
+                    neighbours.ContainingTransforms = new List<int>();
                 }
 
                 systems.GetWorld().DelEntity(entity);
