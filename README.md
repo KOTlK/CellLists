@@ -37,10 +37,10 @@ Sequence above will create cells in the next `CellListsInitSystem.Execute` call.
 
 To insert `Transform` into cells simply add component `InsertInCellLists` to transform.
 
-To get cells, filter components with `Cell, CellNeighbours, TransformContainer` components.
+To get cells, filter components with `Cell, CellNeighbours` components.
 
-`Cell` is a cell. `CellNeighbours` contains indexes of `Cell`s, closest to the cell. TransformContainer contains indexes of `Transform` components, that belongs to the cell
+`Cell` is a cell. `CellNeighbours` contains indexes of `Cell`s, closest to the cell, and indexes of `Transform` components, that belongs to the cell
 
 `CellListsRebuildSystem` can be called with some interval via [Interval Systems](https://github.com/nenuacho/ecslite-interval-systems) extension.
 
-You can Replace `Transform` component with any component, that have `public UnityEngine.Vector2 Position` field in it by cloning repository and deleting my transform from `Components` folder or by downloading unity package and doing the same. Just make sure your component is unmanaged, so it could be used in a parallel jobs
+You can Replace `Transform` component with any component, that have `public UnityEngine.Vector2 Position` field in it by cloning repository and deleting my transform from `Components` folder or by downloading unity package and doing the same.
