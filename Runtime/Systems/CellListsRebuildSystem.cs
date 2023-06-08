@@ -1,7 +1,6 @@
 ﻿using CellListsECS.Runtime.Components;
 using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
-using Unity.Profiling;
 using Transform = CellListsECS.Runtime.Components.Transform;
 
 namespace CellListsECS.Runtime.Systems
@@ -18,12 +17,8 @@ namespace CellListsECS.Runtime.Systems
         private readonly EcsPoolInject<Transform> _transforms = default;
         private readonly EcsPoolInject<CellNeighbours> _neighbours = default;
 
-        private static readonly ProfilerMarker Job = new(nameof(Job));
-
         public void Run(IEcsSystems systems)
         {
-            Job.Begin();
-
             foreach (var entity in _cellsFilter.Value)
             {
                 ref var cell = ref _cells.Value.Get(entity);
@@ -53,9 +48,6 @@ namespace CellListsECS.Runtime.Systems
                     }
                 }
             }
-
-
-            Job.End();
         }
     }
 }
