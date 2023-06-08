@@ -356,12 +356,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _collisions: {fileID: 182609153}
-  _size: {x: 100, y: 100}
-  _width: 10
-  _height: 10
+  _config:
+    Size: {x: 100, y: 100}
+    Center: {x: 0, y: 0}
+    Width: 10
+    Height: 10
   _entitiesCountText: {fileID: 574717936}
   _entitiesCountPerBatch: 10000
-  _startEntitiesCount: 3000
+  _startEntitiesCount: 300000
   _spawnRadius: 50
 --- !u!1 &574717934
 GameObject:

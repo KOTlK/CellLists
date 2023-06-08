@@ -1,7 +1,7 @@
 ﻿using CellListsECS.Runtime.Components;
-using CellListsECS.Runtime.Utils;
 using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
+using Unity.Profiling;
 using Transform = CellListsECS.Runtime.Components.Transform;
 
 namespace CellListsECS.Runtime.Systems
@@ -18,8 +18,12 @@ namespace CellListsECS.Runtime.Systems
         private readonly EcsPoolInject<Transform> _transforms = default;
         private readonly EcsPoolInject<CellNeighbours> _neighbours = default;
 
+        private static readonly ProfilerMarker Job = new(nameof(Job));
+
         public void Run(IEcsSystems systems)
         {
+            Job.Begin();
+
             foreach (var entity in _cellsFilter.Value)
             {
                 ref var cell = ref _cells.Value.Get(entity);
@@ -29,25 +33,29 @@ namespace CellListsECS.Runtime.Systems
                 {
                     var transformEntity = neighbours.ContainingTransforms[i];
                     ref var transform = ref _transforms.Value.Get(transformEntity);
-                    if (CollisionDetection.AABBContainsPoint(cell.Position, cell.AABB, transform.Position))
+                    if (cell.ContainsPoint(transform.Position))
                         continue;
 
                     neighbours.ContainingTransforms.Remove(transformEntity);
+                    transform.Cell = int.MinValue;
 
                     foreach (var neighbourEntity in neighbours.NeighboursEntities)
                     {
                         ref var neighbourCell = ref _cells.Value.Get(neighbourEntity);
 
-                        if (CollisionDetection.AABBContainsPoint(neighbourCell.Position, neighbourCell.AABB,
-                                transform.Position))
+                        if (neighbourCell.ContainsPoint(transform.Position))
                         {
                             ref var neighbourContainer = ref _neighbours.Value.Get(neighbourEntity);
                             neighbourContainer.ContainingTransforms.Add(transformEntity);
+                            transform.Cell = neighbourEntity;
+                            break;
                         }
                     }
                 }
             }
-            
+
+
+            Job.End();
         }
     }
 }

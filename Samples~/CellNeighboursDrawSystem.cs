@@ -2,15 +2,13 @@
 using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
 using UnityEngine;
-using Transform = CellListsECS.Runtime.Components.Transform;
 
 namespace CellListsECS.Samples
 {
-    public class CellDrawSystem : IEcsRunSystem
+    public class CellNeighboursDrawSystem : IEcsRunSystem
     {
         private readonly EcsFilterInject<Inc<Cell, CellNeighbours>> _filter = default;
         private readonly EcsPoolInject<Cell> _cells = default;
-        private readonly EcsPoolInject<Transform> _transforms = default;
         private readonly EcsPoolInject<CellNeighbours> _neighbours = default;
         
         public void Run(IEcsSystems systems)
@@ -25,12 +23,6 @@ namespace CellListsECS.Samples
                 {
                     ref var neighbour = ref _cells.Value.Get(cellNeighbour);
                     Debug.DrawLine(cell.Position, neighbour.Position, Color.red);
-                }
-
-                foreach (var containingEntity in neighbours.ContainingTransforms)
-                {
-                    ref var transform = ref _transforms.Value.Get(containingEntity);
-                    Debug.DrawLine(cell.Position, transform.Position, Color.blue);
                 }
             }
         }

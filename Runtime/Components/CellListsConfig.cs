@@ -4,7 +4,7 @@ using UnityEngine;
 namespace CellListsECS.Runtime.Components
 {
     [Serializable]
-    public struct CreateCellLists
+    public class CellListsConfig
     {
         public Vector2 Size;
         public Vector2 Center;

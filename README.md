@@ -25,22 +25,41 @@ Make sure you have standalone git installed.
 
 # Usage
 
-Simple example of usage with scene can be found inside `Samples~` folder
+Simple example of usage can be found inside `Samples~` folder
 
 - Add `CellListsInitSystem` into your systems
 - Add `InsertTransformSystem` into your systems
+- Add `RemoveFromCellListsSystem` into your systems
 - Add `CellListsRebuildSystem` into your systems
-- Create entity with `CreateCellLists` component attached to it
-- Fill component values
-  
-Sequence above will create cells in the next `CellListsInitSystem.Execute` call.
+- Create `CellListsConfig` and inject it in your systems
 
-To insert `Transform` into cells simply add component `InsertInCellLists` to transform.
+``` C#
+var world = new EcsWorld();
+var systems = new EcsSystems(world);
+var config = new CellListsConfig()
+{
+    Center = Vector2.zero,
+    Size = new Vector2(100, 100),
+    Height = 10,
+    Width = 10
+};
+
+systems
+    .Add(new CellListsInitSystem())
+    .Add(new InsertTransformSystem())
+    .Add(new RemoveFromCellListsSystem())
+    .Add(new CellListsRebuildSystem())
+    .Inject(config)
+    .Init();
+```
+  
+
+To insert `Transform` into cells add component `InsertInCellLists` to transform.
+
+To remove `Transform` component from cell, create new entity with `RemoveFromCellLists` component on it and fill field `TransformEntity`
 
 To get cells, filter components with `Cell, CellNeighbours` components.
 
-`Cell` is a cell. `CellNeighbours` contains indexes of `Cell`s, closest to the cell, and indexes of `Transform` components, that belongs to the cell
+`Cell` is a cell. `CellNeighbours` contains indexes of `Cell`s, closest to the cell, and indexes of `Transform` components, that belongs to the cell. Transform components contains its position and cell, it belongs to.
 
 `CellListsRebuildSystem` can be called with some interval via [Interval Systems](https://github.com/nenuacho/ecslite-interval-systems) extension.
-
-You can Replace `Transform` component with any component, that have `public UnityEngine.Vector2 Position` field in it by cloning repository and deleting my transform from `Components` folder or by downloading unity package and doing the same.

@@ -1,5 +1,6 @@
 ﻿using CellListsECS.Runtime.Components;
 using CellListsECS.Runtime.Systems;
+using CellListsECS.Samples.Scenes;
 using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
 using Leopotam.EcsLite.ExtendedSystems;
@@ -13,9 +14,7 @@ namespace CellListsECS.Samples
     public class Entry : MonoBehaviour
     {
         [SerializeField] private TMP_Text _collisions;
-        [SerializeField] private Vector2 _size = new (100, 100);
-        [SerializeField] private int _width = 10;
-        [SerializeField] private int _height = 10;
+        [SerializeField] private CellListsConfig _config;
         [SerializeField] private TMP_Text _entitiesCountText;
         [SerializeField] private int _entitiesCountPerBatch = 1000;
         [SerializeField] private int _startEntitiesCount = 10000;
@@ -31,24 +30,20 @@ namespace CellListsECS.Samples
             var collisionsWorld = new EcsWorld();
             _systems = new EcsSystems(world);
             _systems.AddWorld(collisionsWorld, "Collisions");
-
-            var entity = world.NewEntity();
-            ref var command = ref world.GetPool<CreateCellLists>().Add(entity);
-            command.Center = Vector2.zero;
-            command.Size = _size;
-            command.Width = _width;
-            command.Height = _height;
             
             _systems
                 .Add(new CellListsInitSystem())
                 .Add(new InsertTransformSystem())
+                .Add(new RemoveFromCellListsSystem())
                 .Add(new MoveTransformsSystem())
                 .Add(new CellListsRebuildSystem())
-                .DelHere<Collision>("Collisions")
-                .Add(new CollisionDetectionSystem())
-                .Add(new DisplayCollisionsSystem()) // uncomment this if you need to display collisions
-                .Add(new CellDrawSystem()) // uncomment this if you need debug in scene view
-                .Inject(_collisions)
+                //.DelHere<Collision>("Collisions")
+                //.Add(new CollisionDetectionSystem())
+                //.Add(new DisplayCollisionsSystem()) // draw collisions
+                //.Add(new CellDrawSystem()) // Draw cells
+                //.Add(new CellNeighboursDrawSystem()) // Draw cell and neighbours connections
+                //.Add(new DisplayNeighboursSystem()) // draw transform neighbours
+                .Inject(_collisions, _config)
                 .Init();
             
             SpawnPoints(_startEntitiesCount);

@@ -1,5 +1,4 @@
 ﻿using CellListsECS.Runtime.Components;
-using CellListsECS.Runtime.Utils;
 using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
 
@@ -23,11 +22,12 @@ namespace CellListsECS.Runtime.Systems
                 foreach (var cellEntity in _cellLists.Value)
                 {
                     ref var cell = ref _cells.Value.Get(cellEntity);
-                    ref var neighbour = ref _neighbours.Value.Get(cellEntity);
 
-                    if (CollisionDetection.AABBContainsPoint(cell.Position, cell.AABB, transform.Position))
+                    if (cell.ContainsPoint(transform.Position))
                     {
+                        ref var neighbour = ref _neighbours.Value.Get(cellEntity);
                         neighbour.ContainingTransforms.Add(entity);
+                        transform.Cell = cellEntity;
                     }
                 }
 

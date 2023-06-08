@@ -7,5 +7,6 @@ namespace CellListsECS.Runtime.Components
     public struct Transform
     {
         public Vector2 Position;
+        public int Cell;
     }
 }
